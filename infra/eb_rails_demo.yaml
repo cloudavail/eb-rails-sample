@@ -4,7 +4,11 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: AWS CloudFormation Stack for a VPC containing an EB Rails App with multiple environments.
 
-Parameters: {}
+Parameters:
+
+  EBRailsAppSecretKeyBase:
+    Description: Secret Key Base used by the Ruby on Rails App
+    Type: String
 
 Mappings:
 
@@ -110,6 +114,9 @@ Resources:
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: InstanceType
           Value: t2.micro
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: SECRET_KEY_BASE
+          Value: !Ref EBRailsAppSecretKeyBase
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: EnvironmentType
           Value: LoadBalanced
