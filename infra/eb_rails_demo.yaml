@@ -6,7 +6,16 @@ Description: AWS CloudFormation Stack for a VPC containing an EB Rails App with 
 
 Parameters: {}
 
-Mappings: {}
+Mappings:
+
+  EnvironmentToConfig:
+    Prod:
+      InstanceType: t2.medium
+      SolutionStackName: "64bit Amazon Linux 2018.03 v2.8.6 running Ruby 2.3 (Puma)"
+
+    QA:
+      InstanceType: t2.medium
+      SolutionStackName: "64bit Amazon Linux 2018.03 v2.8.6 running Ruby 2.3 (Puma)"
 
 Resources:
 
@@ -120,7 +129,7 @@ Resources:
         - Namespace: aws:ec2:vpc
           OptionName: AssociatePublicIpAddress
           Value: true
-      SolutionStackName: 64bit Amazon Linux 2018.03 v2.8.4 running PHP 5.6
+      SolutionStackName: !FindInMap [ EnvironmentToConfig, QA, SolutionStackName ]
 
   EBRailsAppQAEnvironment:
     Type: AWS::ElasticBeanstalk::Environment
@@ -166,7 +175,7 @@ Resources:
         - Namespace: aws:ec2:vpc
           OptionName: AssociatePublicIpAddress
           Value: true
-      SolutionStackName: 64bit Amazon Linux 2018.03 v2.8.4 running PHP 5.6
+      SolutionStackName: !FindInMap [ EnvironmentToConfig, Prod, SolutionStackName ]
 
   EBRailsAppProdEnvironment:
     Type: AWS::ElasticBeanstalk::Environment
