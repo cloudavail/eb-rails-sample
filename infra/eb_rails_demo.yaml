@@ -163,6 +163,9 @@ Resources:
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: InstanceType
           Value: t2.micro
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: SECRET_KEY_BASE
+          Value: !Ref EBRailsAppSecretKeyBase
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: EnvironmentType
           Value: LoadBalanced
