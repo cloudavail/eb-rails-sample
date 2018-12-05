@@ -152,11 +152,23 @@ Resources:
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: InstanceType
           Value: t2.micro
+        # Add an Application Healthcheck URL
+        # configuring to use "Value: /" will configure the ELB utilize a health check using "HTTP:80/"
+        # as opposed to a "TCP:80" health check
+        # the TCP:80 health check can occasionally bring an instance in service prior to serving content
+        - Namespace: aws:elasticbeanstalk:application
+          OptionName: Application Healthcheck URL
+          Value: /
         # Add Environment Variable SECRET_KEY_BASE per:
         # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/ruby-rails-tutorial.html
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: SECRET_KEY_BASE
           Value: !Ref EBRailsAppSecretKeyBase
+        # DeploymentPolicy: AllAtOnce can be used in QA environments
+        # as QA environments can typically tolerate downtime
+        - Namespace: aws:elasticbeanstalk:command
+          OptionName: DeploymentPolicy
+          Value: AllAtOnce
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: EnvironmentType
           Value: LoadBalanced
@@ -209,11 +221,31 @@ Resources:
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: InstanceType
           Value: t2.micro
+        # Add an Application Healthcheck URL
+        # configuring to use "Value: /" will configure the ELB utilize a health check using "HTTP:80/"
+        # as opposed to a "TCP:80" health check
+        # the TCP:80 health check can occasionally bring an instance in service prior to serving content
+        - Namespace: aws:elasticbeanstalk:application
+          OptionName: Application Healthcheck URL
+          Value: /
         # Add Environment Variable SECRET_KEY_BASE per:
         # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/ruby-rails-tutorial.html
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: SECRET_KEY_BASE
           Value: !Ref EBRailsAppSecretKeyBase
+        # DeploymentPolicy: AllAtOnce can be used in QA environments
+        # as QA environments can typically tolerate downtime
+        - Namespace: aws:elasticbeanstalk:command
+          OptionName: DeploymentPolicy
+          Value: AllAtOnce
+        # BatchSize and BatchSizeType are configured in such a way that deployments
+        # are performed one instance at a time
+        - Namespace: aws:elasticbeanstalk:command
+          OptionName: BatchSize
+          Value: 1
+        - Namespace: aws:elasticbeanstalk:command
+          OptionName: BatchSizeType
+          Value: Fixed
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: EnvironmentType
           Value: LoadBalanced
