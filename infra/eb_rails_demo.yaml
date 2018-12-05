@@ -114,6 +114,8 @@ Resources:
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: InstanceType
           Value: t2.micro
+        # Add Environment Variable SECRET_KEY_BASE per:
+        # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/ruby-rails-tutorial.html
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: SECRET_KEY_BASE
           Value: !Ref EBRailsAppSecretKeyBase
@@ -163,6 +165,8 @@ Resources:
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: InstanceType
           Value: t2.micro
+        # Add Environment Variable SECRET_KEY_BASE per:
+        # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/ruby-rails-tutorial.html
         - Namespace: aws:elasticbeanstalk:application:environment
           OptionName: SECRET_KEY_BASE
           Value: !Ref EBRailsAppSecretKeyBase
