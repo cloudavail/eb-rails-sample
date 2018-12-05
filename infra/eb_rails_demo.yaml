@@ -4,7 +4,19 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: AWS CloudFormation Stack for a VPC containing an EB Rails App with multiple environments.
 
-Parameters: {}
+Parameters:
+
+  EBRailsAppEC2KeyName:
+    Type: String
+    Default: cloudavail_eb
+    Description: EB Rails Server Key Pair
+
+  EBRailsAppSecretKeyBase:
+    Type: String
+    # if used in production, the Secret Key Base value should not be checked in
+    # with the CloudFormation file
+    Default: 0ZBapOd5drWqQPxL
+    Description: EB Rails Secret Key Base used by the Ruby on Rails App
 
 Mappings:
 
@@ -70,6 +82,30 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicInternetRouteTable
       SubnetId: !Ref PublicSubnet02
+
+  EBRailsAppIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
+      Path: /
+
+  # EBRailsAppInstanceProfile is utilized to resolve the following message:
+  # The environment does not have an IAM instance profile associated with it.
+  # To improve deployment speed please associate an IAM instance profile with the environment.
+  EBRailsAppInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref EBRailsAppIAMRole
   
   # this SecurityGroup can be:
   # added as the _only_ security group for ElasticBeanstalk EC2 instances
@@ -103,13 +139,24 @@ Resources:
       OptionSettings:
         - Namespace: aws:autoscaling:asg
           OptionName: MinSize
-          Value: 1
+          Value: 2
         - Namespace: aws:autoscaling:asg
           OptionName: MaxSize
-          Value: 1
+          Value: 2
+        - Namespace: aws:autoscaling:launchconfiguration
+          OptionName: EC2KeyName
+          Value: !Ref EBRailsAppEC2KeyName
+        - Namespace: aws:autoscaling:launchconfiguration
+          OptionName: IamInstanceProfile
+          Value: !Ref EBRailsAppInstanceProfile
         - Namespace: aws:autoscaling:launchconfiguration
           OptionName: InstanceType
           Value: t2.micro
+        # Add Environment Variable SECRET_KEY_BASE per:
+        # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/ruby-rails-tutorial.html
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: SECRET_KEY_BASE
+          Value: !Ref EBRailsAppSecretKeyBase
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: EnvironmentType
           Value: LoadBalanced
@@ -154,8 +201,19 @@ Resources:
           OptionName: MaxSize
           Value: 2
         - Namespace: aws:autoscaling:launchconfiguration
+          OptionName: EC2KeyName
+          Value: !Ref EBRailsAppEC2KeyName
+        - Namespace: aws:autoscaling:launchconfiguration
+          OptionName: IamInstanceProfile
+          Value: !Ref EBRailsAppInstanceProfile
+        - Namespace: aws:autoscaling:launchconfiguration
           OptionName: InstanceType
           Value: t2.micro
+        # Add Environment Variable SECRET_KEY_BASE per:
+        # https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/ruby-rails-tutorial.html
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: SECRET_KEY_BASE
+          Value: !Ref EBRailsAppSecretKeyBase
         - Namespace: aws:elasticbeanstalk:environment
           OptionName: EnvironmentType
           Value: LoadBalanced
@@ -166,6 +224,9 @@ Resources:
           OptionName: Subnets
           # Value: !Join turns the individual subnets into a string
           Value: !Join [ ",", [ !Ref PublicSubnet01, !Ref PublicSubnet02 ] ]
+        - Namespace: aws:autoscaling:launchconfiguration
+          OptionName: IamInstanceProfile
+          Value: !Ref EBRailsAppInstanceProfile
         - Namespace: aws:autoscaling:launchconfiguration
           # OptionName: SecurityGroups includes additional security groups
           # that will be added to EC2 instances in the Auto Scaling Group
